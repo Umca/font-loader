@@ -45,10 +45,13 @@ class FontsLoader{
             document.fonts.ready.then(function() {
                 console.warn("Font loading is done. Event is fired in both successul and failed cases.")
             })
-
-            this.loadNative()
         }
-        else this.loadWithObserver()
+    }
+    load(){
+        if(document.fonts){
+            return this.loadNative()
+        }
+        else return this.loadWithObserver()
     }
 
     loadNative(){
@@ -74,21 +77,24 @@ class FontsLoader{
         })
 
         // Get only resolved promises from fontFace.load()
-        Promise.all(fontFacesPromises).then(fontsPr => {
-            Promise.all(
-                fontsPr
-                .filter(fc => fc instanceof FontFace)
-                .map(fc => fc.loaded))
-            .then(fonts => {
-                this.config.debug && fonts.forEach(fc => console.info(`${fc.family} status: ${fc.status}`))
-
-                for(let i = 0 ; i < fonts.length; i++){
-                    let p = document.querySelector(`#example${i+1}`)
-                    p.style.fontFamily = fonts[i].family
-                }
+         return new Promise((resolve, reject) => {
+            Promise.all(fontFacesPromises).then(fontsPr => {
+                Promise.all(
+                    fontsPr
+                    .filter(fc => fc instanceof FontFace)
+                    .map(fc => fc.loaded))
+                .then(fonts => {
+                    this.config.debug && fonts.forEach(fc => console.info(`${fc.family} status: ${fc.status}`))
+                    resolve('Fonts loaded.')
+                
+                })
+                .catch(err => {
+                    console.log(err.name, err.message)
+                    reject(err)
+                })
+    
             })
-
-        })
+         }) 
     }
 
     loadWithObserver(){
@@ -126,21 +132,26 @@ class FontsLoader{
             }
         })
 
-        Promise.all(fontFacesPromises)
-        .then(fonts => {
-            fonts.forEach(f => {
-                if(f instanceof Error) console.error(f.name, f.message)
-                else{
-                    console.info(`${f.family} status: loaded`)
-                }
+        return new Promise((resolve, reject) => {
+            Promise.all(fontFacesPromises)
+            .then(fonts => {
+                fonts.forEach(f => {
+                    if(f instanceof Error) console.error(f.name, f.message)
+                    else{
+                        console.info(`${f.family} status: loaded`)
+                    }
+                })
+                resolve('Fonts loaded.')
             })
-        })
-        .catch(err => {
-            console.error(err.name, err.message)
+            .catch(err => {
+                console.error(err.name, err.message)
+                reject(err)
+            })
         })
     }
 }
 
 const loader = new FontsLoader()
+loader.load().then(e => console.log(e))
 
 export { FontsLoader }
