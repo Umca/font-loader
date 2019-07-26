@@ -1,43 +1,8 @@
 import  "babel-polyfill"
 import FontFaceObserver from "fontfaceobserver-es";
 
-//descriptor example
-// {
-//     family,         - used by font machine algorithm, have no othwe effct
-//     style,
-//     weight,
-//     stretch,
-//     unicodeRange,
-//     variant,        - turn on / off specific features in fonts that support them
-//     featureSettings,
-//     variantionsettings,
-//     display
-// }
-
-let defaultConfig = {
-    debug: true,
-    timer: 3000,
-    fonts : [
-        {
-            name: 'Hack', 
-            source: 'https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.003/web/fonts/hack-regular.woff',
-            descriptor: {}
-        },
-        {
-            name: 'Hanalei',
-            source: './fonts/Hanalei-Regular.ttf',
-            descriptor: {}
-        },
-        {
-            name: 'NotoSans',
-            source: './fonts/NotoSans-Regular.woff2',
-            descriptor: {}
-        }
-    ]
-}
-
 class FontsLoader{
-    constructor(config = defaultConfig)
+    constructor(config)
     {
         this.config = config
 
@@ -48,10 +13,10 @@ class FontsLoader{
         }
     }
     load(){
-        if(document.fonts){
+        if(document.fonts)
             return this.loadNative()
-        }
-        else return this.loadWithObserver()
+        else 
+            return this.loadWithObserver()
     }
 
     loadNative(){
@@ -78,21 +43,17 @@ class FontsLoader{
 
         // Get only resolved promises from fontFace.load()
          return new Promise((resolve, reject) => {
-            Promise.all(fontFacesPromises).then(fontsPr => {
+
+            Promise.all(fontFacesPromises).then(fonts => {
+
+                this.errorHandling(fonts)
+
                 Promise.all(
-                    fontsPr
+                    fonts
                     .filter(fc => fc instanceof FontFace)
                     .map(fc => fc.loaded))
-                .then(fonts => {
-                    this.config.debug && fonts.forEach(fc => console.info(`${fc.family} status: ${fc.status}`))
-                    resolve('Fonts loaded.')
-                
-                })
-                .catch(err => {
-                    console.log(err.name, err.message)
-                    reject(err)
-                })
-    
+                .then(fonts => resolve(this.successfullMsg(fonts)))
+                .catch(err => reject(err))
             })
          }) 
     }
@@ -135,23 +96,22 @@ class FontsLoader{
         return new Promise((resolve, reject) => {
             Promise.all(fontFacesPromises)
             .then(fonts => {
-                fonts.forEach(f => {
-                    if(f instanceof Error) console.error(f.name, f.message)
-                    else{
-                        console.info(`${f.family} status: loaded`)
-                    }
-                })
-                resolve('Fonts loaded.')
+                this.errorHandling(fonts)
+                resolve(this.successfullMsg(fonts.filter(f => (!(f instanceof Error)))))
             })
-            .catch(err => {
-                console.error(err.name, err.message)
-                reject(err)
-            })
+            .catch(err => reject(err))
         })
     }
-}
 
-const loader = new FontsLoader()
-loader.load().then(e => console.log(e))
+    errorHandling(fonts){
+        fonts
+        .filter(fc => fc instanceof Error)
+        .forEach(err => console.error(err.name, err.message))
+    }
+
+    successfullMsg(fonts){
+        return `FONTS: ${fonts.map(fc => fc.family).join(', ')} loaded.`
+    }
+}
 
 export { FontsLoader }
