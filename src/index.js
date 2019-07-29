@@ -1,0 +1,1 @@
+export { FontsLoader } from './loader'

@@ -1,33 +1,34 @@
 import  "babel-polyfill"
 import FontFaceObserver from "fontfaceobserver-es";
 
-class FontsLoader{
-    constructor(config)
+class FontsLoader {
+    constructor(config = {})
     {
-        this.config = config
-
+        this.timer = config.timer || 20000
         if(document.fonts) {
             document.fonts.ready.then(function() {
                 console.warn("Font loading is done. Event is fired in both successul and failed cases.")
             })
         }
     }
+    // Can accept one {} or [{},...]
     load(){
-        if(document.fonts)
-            return this.loadNative()
-        else 
-            return this.loadWithObserver()
+        if(Array.isArray(arguments[0])) this.fonts = arguments[0]
+        else this.fonts = [arguments[0]]
+
+        if(document.fonts) return this.loadNative()
+        else return this.loadWithObserver()
     }
 
     loadNative(){
         // Check if fonts do not have source
-        this.config.fonts = this.config.fonts.filter(font => {
+        this.fonts = this.fonts.filter(font => {
             if(!font.source) console.error(`Font ${font.name}. No source provided.`)
             else return font
         })
 
         // Create FontFace
-        let fontFaces = this.config.fonts
+        let fontFaces = this.fonts
         .map(({name, source, descriptor}) => new FontFace(name, `url(${source})`, descriptor))
 
         fontFaces.forEach(fc => document.fonts.add(fc))
@@ -52,7 +53,7 @@ class FontsLoader{
                     fonts
                     .filter(fc => fc instanceof FontFace)
                     .map(fc => fc.loaded))
-                .then(fonts => resolve(this.successfullMsg(fonts)))
+                .then(fonts => resolve(this.successfulMsg(fonts)))
                 .catch(err => reject(err))
             })
          }) 
@@ -61,7 +62,7 @@ class FontsLoader{
     loadWithObserver(){
         let style = ''
 
-        this.config.fonts.forEach( font => {
+        this.fonts.forEach( font => {
             style+=`
             @font-face {
                 font-family: '${font.name}';
@@ -84,10 +85,10 @@ class FontsLoader{
             styleTag.appendChild(document.createTextNode(style));
         }
 
-        let fontFacesPromises = this.config.fonts.map(async family => {
+        let fontFacesPromises = this.fonts.map(async family => {
             try {
                 let obs = new FontFaceObserver(family.name, family.descriptor)
-                return Promise.resolve(await obs.load(null, this.config.timer || 20000))
+                return Promise.resolve(await obs.load(null, this.timer))
             } catch(err) {
                 return err
             }
@@ -97,7 +98,7 @@ class FontsLoader{
             Promise.all(fontFacesPromises)
             .then(fonts => {
                 this.errorHandling(fonts)
-                resolve(this.successfullMsg(fonts.filter(f => (!(f instanceof Error)))))
+                resolve(this.successfulMsg(fonts.filter(f => (!(f instanceof Error)))))
             })
             .catch(err => reject(err))
         })
@@ -109,7 +110,7 @@ class FontsLoader{
         .forEach(err => console.error(err.name, err.message))
     }
 
-    successfullMsg(fonts){
+    successfulMsg(fonts){
         return `FONTS: ${fonts.map(fc => fc.family).join(', ')} loaded.`
     }
 }
