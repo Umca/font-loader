@@ -1,9 +1,10 @@
 {
   "name": "fonts-loader",
-  "version": "1.0.0",
+  "version": "1.0.8",
   "description": "Tiny package to load fonts.",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "parcel src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
