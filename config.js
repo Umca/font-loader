@@ -1,15 +1,13 @@
-const defaultConfig = {
-    timer: 3000,
-    fonts : [
+const defaultConfig =  [
         {
             name: 'Hack', 
             source: 'https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.003/web/fonts/hack-regular.woff',
-            descriptor: {}
+            descriptor: {},
         },
         {
             name: 'Hanalei',
             source: './fonts/Hanalei-Regular.ttf',
-            descriptor: {}
+            descriptor: {},
         },
         {
             name: 'NotoSans',
@@ -17,6 +15,6 @@ const defaultConfig = {
             descriptor: {}
         }
     ]
-}
+
 
 export { defaultConfig }
