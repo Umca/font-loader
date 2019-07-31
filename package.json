@@ -1,13 +1,19 @@
 {
   "name": "fonts-loader",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Tiny package to load fonts.",
   "main": "dist/index.js",
   "scripts": {
-    "build": "parcel src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rimraf -r dist && parcel src/index.js",
+    "publish:patch": "npm version patch && npm publish",
+    "publish:minor": "npm version minor && npm publish",
+    "publish:major": "npm version major && npm publish",
+    "test": "parcel example/index.html"
   },
-  "keywords": [],
+  "keywords": [
+    "font",
+    "loader"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -17,6 +23,12 @@
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.26.0",
-    "babel-runtime": "^6.26.0"
+    "babel-runtime": "^6.26.0",
+    "parcel-bundler": "^1.12.3",
+    "parcel-plugin-static-files-copy": "^2.2.0",
+    "rimraf": "^2.6.3"
+  },
+  "staticFiles": {
+    "staticPath": "example/assets"
   }
 }
