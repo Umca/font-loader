@@ -3,13 +3,22 @@
   "version": "1.0.8",
   "description": "Tiny package to load fonts.",
   "main": "dist/index.js",
+  "keywords": [
+    "pixi",
+    "font",
+    "loader"
+  ],
+  "author": "Olga Akinshina @Umca",
+  "license": "ISC",
+  "homepage": "https://github.com/Umca/font-loader#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Umca/font-loader.git"
+  },
   "scripts": {
     "build": "parcel src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "fontfaceobserver-es": "^3.3.1"
   },
