@@ -104,13 +104,12 @@ class FontsLoader {
         })
     }
 
-    errorHandling(fonts){
-        fonts
-        .filter(fc => fc instanceof Error)
-        .forEach(err => console.error(err.name, err.message))
+    handleErrors(errors){
+        errors.forEach(err => 
+            console.error(err.name, err.message))
     }
 
-    successfulMsg(fonts){
+    success(fonts){
         return `FONTS: ${fonts.map(fc => fc.family).join(', ')} loaded.`
     }
 }
