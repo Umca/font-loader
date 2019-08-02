@@ -1,6 +1,6 @@
 {
   "name": "fonts-loader",
-  "version": "1.0.9",
+  "version": "1.0.12",
   "description": "Tiny package to load fonts.",
   "main": "dist/index.js",
   "keywords": [
@@ -17,17 +17,11 @@
   },
   "scripts": {
     "start": "parcel example/index.html",
+    "build": "rimraf -r dist && parcel src/index.js",
     "publish:patch": "npm version patch && npm publish",
     "publish:minor": "npm version minor && npm publish",
     "publish:major": "npm version major && npm publish"
-    "build": "rimraf -r dist && parcel src/index.js",
   },
-  "keywords": [
-    "font",
-    "loader"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "fontfaceobserver-es": "^3.3.1"
   },
