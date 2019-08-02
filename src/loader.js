@@ -1,60 +1,88 @@
-import  "babel-polyfill"
-import FontFaceObserver from "fontfaceobserver-es";
+import "babel-polyfill"
+import FontFaceObserver from "fontfaceobserver-es"
 
 class FontsLoader {
-    constructor(config = {})
-    {
-        this.timer = config.timer || 20000
-        if(document.fonts) {
-            document.fonts.ready.then(function() {
-                console.warn("Font loading is done. Event is fired in both successul and failed cases.")
-            })
-        }
-    }
-    // Can accept one {} or [{},...]
-    load(){
-        if(Array.isArray(arguments[0])) this.fonts = arguments[0]
-        else this.fonts = [arguments[0]]
 
-        if(document.fonts) return this.loadNative()
-        else return this.loadWithObserver()
-    }
+    constructor(fonts, {
+        timer = 20000,
+        silent = true,
+        error = true
+    } = {}) {
+        this.timer = timer
+        this.silent = silent
+        this.error = error
 
-    loadNative(){
+        if(document.fonts && !this.silent)
+            document.fonts.ready.then(() => 
+                console.warn("Font loading is done. Event is fired in both successul and failed cases."))
+
+        // Fonts Array|Object
+        if(Array.isArray(fonts))
+            this.fonts = fonts
+        else this.fonts = [fonts]
+
         // Check if fonts do not have source
         this.fonts = this.fonts.filter(font => {
-            if(!font.source) console.error(`Font ${font.name}. No source provided.`)
+            if(!font.source && this.error)
+                console.error(`Font ${font.name}. No source provided.`)
             else return font
         })
 
-        // Create FontFace
-        let fontFaces = this.fonts
-        .map(({name, source, descriptor}) => new FontFace(name, `url(${source})`, descriptor))
+        if(document.fonts)
+            this.promise = this.loadNative()
+        else this.promise = this.loadWithObserver()
+    }
 
-        fontFaces.forEach(fc => document.fonts.add(fc))
+    then(fn) {
+        if (this.promise)
+            this.promise.then(fn)
+    }
 
-        // Get results of FontFace.load promises (fullfilled and rejected) to control asynchronous flow 
-        let fontFacesPromises = fontFaces.map(async fc => {
-            try {
-                return Promise.resolve(await fc.load())
-            } catch(err) {
-                return err
-            }
-        })
+    catch(fn) {
+        if (this.promise)
+            this.promise.catch(fn)
+    }
+
+    loadNative(){
+        // Create FontFaces
+        this.promises = this.fonts
+            .map(({name, source, descriptor}) => 
+                new FontFace(name, `url(${source})`, descriptor))
+            .map(fc => document.fonts.add(fc) && fc)
+            .map(async fc => {
+                try {
+                    return Promise.resolve(await fc.load())
+                } catch(err) {
+                    return err
+                }
+            })
 
         // Get only resolved promises from fontFace.load()
-         return new Promise((resolve, reject) => {
+         return this.wrapIntoPromise(this.promises)
+    }
 
-            Promise.all(fontFacesPromises).then(fonts => {
+    wrapIntoPromise(promises) {
+        return new Promise((resolve, reject) => {
 
-                this.errorHandling(fonts)
+            Promise.all(promises).then(results => {
 
-                Promise.all(
-                    fonts
-                    .filter(fc => fc instanceof FontFace)
-                    .map(fc => fc.loaded))
-                .then(fonts => resolve(this.successfulMsg(fonts)))
-                .catch(err => reject(err))
+                let fonts, errors
+                if(document.fonts)
+                    fonts = results
+                        .filter(fc => fc instanceof FontFace)
+                        .map(fc => fc.loaded)
+                else fonts = results
+                    .filter(fc => !fc instanceof Error)
+
+                errors = results
+                    .filter(fc => fc instanceof Error)
+
+                if (this.error)
+                    this.handleErrors(errors)
+
+                Promise.all(fonts)
+                    .then(fonts => resolve(!this.silent && this.success(fonts)))
+                    .catch(err => reject(err))
             })
          }) 
     }
@@ -62,55 +90,42 @@ class FontsLoader {
     loadWithObserver(){
         let style = ''
 
-        this.fonts.forEach( font => {
-            style+=`
-            @font-face {
-                font-family: '${font.name}';
-                font-style: ${font.descriptor ? font.descriptor.style : 'normal'},;
-                font-weight: ${font.descriptor ? font.descriptor.weight : 'normal'},;
-                src: url('${font.source}') format("truetype");
-            }`
-        })
-
-        let head = document.head || document.getElementsByTagName('head')[0]
+        this.fonts.forEach(font => 
+            style += this.createFontFaceRule(font))
 
         let styleTag = document.createElement('style')
         styleTag.type = 'text/css'
-        head.appendChild(styleTag)
+        styleTag.innerText = style
+        document.head.appendChild(styleTag)
 
-        if (style.styleSheet){
-            // This is required for IE8 and below.
-            styleTag.styleSheet.cssText = style;
-        } else {
-            styleTag.appendChild(document.createTextNode(style));
-        }
-
-        let fontFacesPromises = this.fonts.map(async family => {
+        this.promises = this.fonts.map(async ({name, descriptor}) => {
             try {
-                let obs = new FontFaceObserver(family.name, family.descriptor)
-                return Promise.resolve(await obs.load(null, this.timer))
+                let fc = new FontFaceObserver(name, descriptor)
+                return Promise.resolve(await fc.load(null, this.timer))
             } catch(err) {
                 return err
             }
         })
 
-        return new Promise((resolve, reject) => {
-            Promise.all(fontFacesPromises)
-            .then(fonts => {
-                this.errorHandling(fonts)
-                resolve(this.successfulMsg(fonts.filter(f => (!(f instanceof Error)))))
-            })
-            .catch(err => reject(err))
-        })
+        return this.wrapIntoPromise(this.promises)
     }
 
-    errorHandling(fonts){
-        fonts
-        .filter(fc => fc instanceof Error)
-        .forEach(err => console.error(err.name, err.message))
+    createFontFaceRule(font) {
+        return `
+        @font-face {
+            font-family: '${font.name}';
+            font-style: ${font.descriptor ? font.descriptor.style : 'normal'};
+            font-weight: ${font.descriptor ? font.descriptor.weight : 'normal'};
+            src: url('${font.source}') format("truetype");
+        }`
     }
 
-    successfulMsg(fonts){
+    handleErrors(errors){
+        errors.forEach(err => 
+            console.error(err.name, err.message))
+    }
+
+    success(fonts){
         return `FONTS: ${fonts.map(fc => fc.family).join(', ')} loaded.`
     }
 }

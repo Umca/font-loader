@@ -3,12 +3,24 @@
   "version": "1.0.9",
   "description": "Tiny package to load fonts.",
   "main": "dist/index.js",
+  "keywords": [
+    "pixi",
+    "font",
+    "loader"
+  ],
+  "author": "Olga Akinshina @Umca",
+  "license": "ISC",
+  "homepage": "https://github.com/Umca/font-loader#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Umca/font-loader.git"
+  },
   "scripts": {
-    "build": "rimraf -r dist && parcel src/index.js",
+    "start": "parcel example/index.html",
     "publish:patch": "npm version patch && npm publish",
     "publish:minor": "npm version minor && npm publish",
-    "publish:major": "npm version major && npm publish",
-    "test": "parcel example/index.html"
+    "publish:major": "npm version major && npm publish"
+    "build": "rimraf -r dist && parcel src/index.js",
   },
   "keywords": [
     "font",
