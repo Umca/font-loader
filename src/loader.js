@@ -1,4 +1,4 @@
-import "babel-polyfill"
+//import "babel-polyfill"
 import FontFaceObserver from "fontfaceobserver-es"
 
 class FontsLoader {
