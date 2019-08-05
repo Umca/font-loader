@@ -1,10 +1,9 @@
 {
   "name": "fonts-loader",
-  "version": "1.0.12",
+  "version": "1.0.17",
   "description": "Tiny package to load fonts.",
-  "main": "dist/index.js",
+  "main": "dist/assets/js/index.js",
   "keywords": [
-    "pixi",
     "font",
     "loader"
   ],
@@ -16,8 +15,8 @@
     "url": "git+https://github.com/Umca/font-loader.git"
   },
   "scripts": {
-    "start": "parcel example/index.html",
-    "build": "rimraf -r dist && parcel src/index.js",
+    "start": "poi --config poi.dev.js --serve",
+    "build": "poi build --config poi.build.js --library",
     "publish:patch": "npm version patch && npm publish",
     "publish:minor": "npm version minor && npm publish",
     "publish:major": "npm version major && npm publish"
@@ -32,6 +31,7 @@
     "babel-runtime": "^6.26.0",
     "parcel-bundler": "^1.12.3",
     "parcel-plugin-static-files-copy": "^2.2.0",
+    "poi": "^12.7.1",
     "rimraf": "^2.6.3"
   },
   "staticFiles": {
