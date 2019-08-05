@@ -3,7 +3,7 @@ import { FontsLoader } from '../src/loader'
 const list = [
     {
         name: 'AlegreyaSans',
-        source: './AlegreyaSansSC-Light.ttf',
+        source: 'AlegreyaSansSC-Bold.ttf',
         descriptor: {
             style: 'normal',
             weight: 300
@@ -11,7 +11,7 @@ const list = [
     },
     {
         name: 'AlegreyaSans',
-        source: './AlegreyaSansSC-Bold.ttf',
+        source: 'AlegreyaSansSC-Bold.ttf',
         descriptor: {
             style: 'normal',
             weight: 800
